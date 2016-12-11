@@ -12,6 +12,9 @@ class Author(Base):
     name = Column(String)
     slug = Column(String)
 
+    def __str__(self):
+        return '{0}: {1}'.format(self.id, self.name)
+
 
 class Book(Base):
     __tablename__ = 'books'
@@ -24,6 +27,9 @@ class Book(Base):
                          uselist=True,
                          cascade='delete,all'))
     contents = Column(Text)
+
+    def __str__(self):
+        return '{0}: {1}'.format(self.id, self.title)
 
 
 
