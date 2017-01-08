@@ -1,8 +1,38 @@
 import re
 import nltk
+from nltk.corpus import wordnet as wn
 from stopwords import STOPWORDS
 from graph_builder import *
 import gexf_writer
+
+
+def is_noun(tag):
+    return tag in ['NN', 'NNS', 'NNP', 'NNPS']
+
+
+def is_verb(tag):
+    return tag in ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+
+def is_adverb(tag):
+    return tag in ['RB', 'RBR', 'RBS']
+
+
+def is_adjective(tag):
+    return tag in ['JJ', 'JJR', 'JJS']
+
+
+def penn_to_wn(tag):
+    if is_adjective(tag):
+        return wn.ADJ
+    elif is_noun(tag):
+        return wn.NOUN
+    elif is_adverb(tag):
+        return wn.ADV
+    elif is_verb(tag):
+        return wn.VERB
+    return None
+
 
 def preprocess_text(text, chapters_split_re, paragraph_split_re):
     chapters = chapters_split_re.split(text.lower())[1:]
@@ -10,13 +40,24 @@ def preprocess_text(text, chapters_split_re, paragraph_split_re):
     return chapters
 
 
+def lemmatize_with_tag(lemmatizer, token):
+    tag = nltk.pos_tag([token])
+    wn_tag = penn_to_wn(tag[0][1])
+    if wn_tag:
+        return lemmatizer.lemmatize(token, wn_tag)
+    else:
+        return lemmatizer.lemmatize(token)
+
+
 def preprocess_chapter(text, paragraph_split_re):
     paragraphs = paragraph_split_re.split(text)
     paragraphs = map(nltk.word_tokenize, paragraphs)
     paragraphs = [list(filter(lambda w: w not in STOPWORDS, p)) for p in paragraphs]
     paragraphs = filter(lambda p: len(p) > 1, paragraphs)
+    tokens_pos = map(nltk.pos_tag, paragraphs)
     lemmatizer = nltk.stem.WordNetLemmatizer()
-    paragraphs = [list(map(lemmatizer.lemmatize, p)) for p in paragraphs]
+    lemmatize = lambda t: lemmatize_with_tag(lemmatizer, t)
+    paragraphs = [list(map(lemmatize, p)) for p in paragraphs]
     return paragraphs
 
 

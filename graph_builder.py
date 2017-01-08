@@ -67,6 +67,23 @@ def dynamic_edges_to_csv_format(graph):
     return edges
 
 
+def add_graph_to_dynamic_graph(dynamic_graph, graph, chapter_id):
+    for a, b in graph.edges():
+        weight = graph[a][b]['weight']
+        dynamic_graph.add_edge(
+            a, b,
+            Weight=[(weight, float(chapter_id + 1), float(chapter_id + 1))],
+            spells=[(float(chapter_id + 1), float(chapter_id + 1))]
+        )
+        add_spells_to_node(
+            dynamic_graph, a, [(float(chapter_id + 1), float(chapter_id + 1))]
+        )
+        add_spells_to_node(
+            dynamic_graph, b, [(float(chapter_id + 1), float(chapter_id + 1))]
+        )
+    return dynamic_graph
+
+
 def save_dynamic_graph_to_file(graph, filename):
     with open(filename, 'w') as ef:
         ef.write('Source,Target,Weight,Timestamp,Type\n')
